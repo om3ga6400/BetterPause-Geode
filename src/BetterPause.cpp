@@ -1,5 +1,4 @@
 #include "BetterPause.hpp"
-#include <optional>
 
 std::vector<std::string> BetterPause::quickSettingsNames = {};
 std::vector<std::string> BetterPause::quickSettingsDescriptions = {};
@@ -86,15 +85,15 @@ void BetterPause::createBetterPause() {
 
 void BetterPause::createSimplePause() {
 
-	auto bgPause = dynamic_cast<cocos2d::extension::CCScale9Sprite*>(pauseLayer->getChildByID("background"));
-	auto titleLevel = dynamic_cast<cocos2d::CCLabelBMFont*>(pauseLayer->getChildByID("level-name"));
-	auto barNormal = dynamic_cast<cocos2d::CCSprite*>(pauseLayer->getChildByID("normal-progress-bar"));
-	auto barPractice = dynamic_cast<cocos2d::CCSprite*>(pauseLayer->getChildByID("practice-progress-bar"));
-	auto perNormal = dynamic_cast<cocos2d::CCLabelBMFont*>(pauseLayer->getChildByID("normal-progress-label"));
-	auto perPractice = dynamic_cast<cocos2d::CCLabelBMFont*>(pauseLayer->getChildByID("practice-progress-label"));
-	auto buttonsMenu = dynamic_cast<cocos2d::CCMenu*>(pauseLayer->getChildByID("center-button-menu"));
-	auto pointsLabel = dynamic_cast<cocos2d::CCLabelBMFont*>(pauseLayer->getChildByID("points-label"));
-	auto timeLabel = dynamic_cast<cocos2d::CCLabelBMFont*>(pauseLayer->getChildByID("play-time"));
+	auto bgPause = static_cast<cocos2d::extension::CCScale9Sprite*>(pauseLayer->getChildByID("background"));
+	auto titleLevel = static_cast<cocos2d::CCLabelBMFont*>(pauseLayer->getChildByID("level-name"));
+	auto barNormal = static_cast<cocos2d::CCSprite*>(pauseLayer->getChildByID("normal-progress-bar"));
+	auto barPractice = static_cast<cocos2d::CCSprite*>(pauseLayer->getChildByID("practice-progress-bar"));
+	auto perNormal = static_cast<cocos2d::CCLabelBMFont*>(pauseLayer->getChildByID("normal-progress-label"));
+	auto perPractice = static_cast<cocos2d::CCLabelBMFont*>(pauseLayer->getChildByID("practice-progress-label"));
+	auto buttonsMenu = static_cast<cocos2d::CCMenu*>(pauseLayer->getChildByID("center-button-menu"));
+	auto pointsLabel = static_cast<cocos2d::CCLabelBMFont*>(pauseLayer->getChildByID("points-label"));
+	auto timeLabel = static_cast<cocos2d::CCLabelBMFont*>(pauseLayer->getChildByID("play-time"));
 
 	this->setVisibleNodesSimplePause(true);
 
@@ -174,7 +173,7 @@ void BetterPause::createSimplePause() {
 void BetterPause::createClassicPause() {
 	for (size_t i = 1; i < pauseLayer->getChildrenCount(); i++)
 	{
-		auto node = dynamic_cast<cocos2d::CCNode*>(pauseLayer->getChildren()->objectAtIndex(i));
+		auto node = typeinfo_cast<cocos2d::CCNode*>(pauseLayer->getChildren()->objectAtIndex(i));
 		if (node)
 		{
 			node->setVisible(true);
@@ -213,7 +212,7 @@ void BetterPause::createClassicPause() {
 	this->visibleButton = CCMenuItemSpriteExtra::create(visibleButtonImage, this, (cocos2d::SEL_MenuHandler)&BetterPause::onHide);
 
 	if (auto menu = pauseLayer->getChildByID("right-button-menu")) {
-		secondaryMenuButtons = typeinfo_cast<CCMenu*>(pauseLayer->getChildByID("right-button-menu"));
+		secondaryMenuButtons = static_cast<CCMenu*>(pauseLayer->getChildByID("right-button-menu"));
 		menu->addChild(settingsButton);
 		menu->addChild(this->visibleButton);
 		menu->updateLayout();
@@ -247,28 +246,13 @@ void BetterPause::createSectionTitles() {
 
 void BetterPause::handleOptionsLayers() {
 	auto gameOptionsLayer = GameOptionsLayer::create(Utils::getplayLayerA());
-#ifdef GEODE_IS_MACOS
-	auto functionPointer = reinterpret_cast<void (*)()>(*reinterpret_cast<uintptr_t*>(gameOptionsLayer) + 0x508);
-	functionPointer();
-#else
 	gameOptionsLayer->show();
-#endif
 	gameOptionsLayer->unregisterScriptTouchHandler();
 	Utils::shareDirectorA()->getTouchDispatcher()->unregisterForcePrio(gameOptionsLayer);
-#ifdef GEODE_IS_MACOS
-	auto functionPointer2 = reinterpret_cast<void (*)(cocos2d::CCObject*)>(*reinterpret_cast<uintptr_t*>(gameOptionsLayer) + 0x529);
-	functionPointer2(nullptr);
-#else
 	gameOptionsLayer->onClose(nullptr);
-#endif
 
 	auto moreOptionsLayer = MoreOptionsLayer::create();
-#ifdef GEODE_IS_MACOS
-	auto functionPointer3 = reinterpret_cast<void (*)()>(*reinterpret_cast<uintptr_t*>(moreOptionsLayer) + 0x508);
-	functionPointer3();
-#else
 	moreOptionsLayer->show();
-#endif
 	moreOptionsLayer->onClose(nullptr);
 }
 
@@ -292,31 +276,13 @@ void BetterPause::createCustomSongWidget() {
 		songInfoObject = SongInfoObject::create(levelSongID);
 	}
 
-	this->customSongWidget = CustomSongWidget::create(songInfoObject, 0, 0, 0, 1, levelSongID == 0, 0, 0);
+	this->customSongWidget = CustomSongWidget::create(songInfoObject, 0, 0, 0, 1, levelSongID == 0, 0, 0, 0);
 	this->customSongWidget->setPosition(172.f, 50.f);
 	this->customSongWidget->setScale(0.6f);
 	this->customSongWidget->setID("custom-song-widget");
 	this->addChild(customSongWidget);
 
-	intptr_t offsetUnkFloatCSW = 0;
-
-#ifdef GEODE_IS_WINDOWS
-	offsetUnkFloatCSW = 0x18c;
-#endif
-
-#ifdef GEODE_IS_ANDROID64
-	offsetUnkFloatCSW = 0x170;
-#endif
-
-#ifdef GEODE_IS_ANDROID32
-	offsetUnkFloatCSW = 0x128;
-#endif
-
-#ifdef GEODE_IS_MACOS
-	offsetUnkFloatCSW = 0x1c0;
-#endif
-
-	if (Utils::from<void*>(songInfoObject, offsetUnkFloatCSW) != 0) {
+	if (songInfoObject->m_isUnknownSong) {
 		customSongWidget->onGetSongInfo(customSongWidget);
 	}
 
@@ -393,19 +359,8 @@ void BetterPause::createQuestMenu() {
 	questMenu->setTouchPriority(-10);
 	
 	//WHY!!!!
-#ifdef GEODE_IS_MACOS
-	if (Utils::from<void*>(questMenu, 0x170) != 0) {
-		questMenu->release();
-		Utils::from<void*>(questMenu, 0x170) = 0;
-}
-	if (Utils::from<void*>(questMenu, 0x178) != 0) {
-		questMenu->release();
-		Utils::from<void*>(questMenu, 0x178) = 0;
-	}
-#else 
 	questMenu->unregisterScriptTouchHandler();
 	questMenu->unregisterScriptKeypadHandler();
-#endif
 
 
 	Utils::shareDirectorA()->getTouchDispatcher()->unregisterForcePrio(this->questMenu);
@@ -485,16 +440,7 @@ void BetterPause::createMainButtonsMenu() {
 	auto quitButtonImage = cocos2d::CCSprite::createWithSpriteFrameName("GJ_menuBtn_001.png");
 	quitButtonImage->setScale(0.5f);
 
-	cocos2d::SEL_MenuHandler handler;
-
-#ifdef GEODE_IS_MACOS
-	handler = (cocos2d::SEL_MenuHandler)&PauseLayer::onQuit;
-#else
-	handler = (cocos2d::SEL_MenuHandler)&PauseLayer::tryQuit;
-
-#endif 
-
-	auto quitButton = CCMenuItemSpriteExtra::create(quitButtonImage, pauseLayer, handler);
+	auto quitButton = CCMenuItemSpriteExtra::create(quitButtonImage, pauseLayer, (cocos2d::SEL_MenuHandler)&PauseLayer::tryQuit);
 	totalHeight += quitButtonImage->getContentSize().height - 24.f;
 	createButtonMenu(quitButton);
 
@@ -530,8 +476,8 @@ void BetterPause::createMainButtonsMenu() {
 
 		if (buttonExt) {
 
-			auto normalImage = dynamic_cast<CCSprite*>(buttonExt->getNormalImage());
-			auto lastNormalImage = dynamic_cast<CCSprite*>(lastButtonBefore->getNormalImage());
+			auto normalImage = typeinfo_cast<CCSprite*>(buttonExt->getNormalImage());
+			auto lastNormalImage = typeinfo_cast<CCSprite*>(lastButtonBefore->getNormalImage());
 
 			auto baseCollisionBox = lastNormalImage->boundingBox();
 			auto currentCollisionBox = normalImage->boundingBox();
@@ -575,7 +521,7 @@ void BetterPause::createMainButtonsMenu() {
 	auto allChildrens = buttonsList->m_contentLayer->getChildren();
 	CCObject* node;
 	CCARRAY_FOREACH(allChildrens, node) {
-		auto child = dynamic_cast<CCNode*>(node);
+		auto child = typeinfo_cast<CCNode*>(node);
 		child->setPositionY(child->getPositionY() + totalHeight + 25.f);
 	}
 
@@ -655,17 +601,8 @@ void BetterPause::createAudioControls() {
 	auto musicValue = 0.f;
 	auto sfxValue = 0.f;
 
-#ifdef GEODE_IS_WINDOWS
-	musicValue = Utils::from<float>(Utils::shareFMOD(), 0x168);
-#else
 	musicValue = Utils::shareFMOD()->getBackgroundMusicVolume();
-#endif
-
-#ifdef GEODE_IS_WINDOWS
-	sfxValue = Utils::from<float>(Utils::shareFMOD(), 0x16C);
-#else
 	sfxValue = Utils::shareFMOD()->getEffectsVolume();
-#endif
 
 	sliderPlusMusic = SliderPlus::create("Music", this, (cocos2d::SEL_MenuHandler)&PauseLayer::musicSliderChanged,
 		nullptr, nullptr, musicValue);
@@ -977,7 +914,7 @@ void BetterPause::onHide(cocos2d::CCObject* pSender) {
 
 	if (areTexturesLoaded)
 	{
-		typeinfo_cast<cocos2d::CCSprite*>(visibleButton->getNormalImage())->initWithFile(this->isHidden ? "BE_eye-off-btn.png"_spr : "BE_eye-on-btn.png"_spr);
+		static_cast<cocos2d::CCSprite*>(visibleButton->getNormalImage())->initWithFile(this->isHidden ? "BE_eye-off-btn.png"_spr : "BE_eye-on-btn.png"_spr);
 	}
 	visibleButton->setVisible(true);
 	visibleButton->setOpacity(this->isHidden ? 50 : 255);
@@ -1016,12 +953,7 @@ void BetterPause::onRedirectionToggle(cocos2d::CCObject* pSender) {
 	auto toggleButton = reinterpret_cast<CCMenuItemToggler*>(pSender);
 	auto gameOptionsLayer = GameOptionsLayer::create(Utils::getplayLayerA());
 
-#ifdef GEODE_IS_MACOS
-	auto functionPointer = reinterpret_cast<void (*)()>(*reinterpret_cast<uintptr_t*>(gameOptionsLayer) + 0x508);
-	functionPointer();
-#else
 	gameOptionsLayer->show();
-#endif
 
 
 	auto toggleTag = toggleButton->getTag();
@@ -1030,12 +962,7 @@ void BetterPause::onRedirectionToggle(cocos2d::CCObject* pSender) {
 		gameOptionsLayer->didToggle(-toggleTag - 1);
 	}
 
-#ifdef GEODE_IS_MACOS
-	auto functionPointer2 = reinterpret_cast<void (*)(cocos2d::CCObject*)>(*reinterpret_cast<uintptr_t*>(gameOptionsLayer) + 0x529);
-	functionPointer2(nullptr);
-#else
 	gameOptionsLayer->onClose(nullptr);
-#endif
 
 	this->clearQuickSettings();
 }
@@ -1052,19 +979,9 @@ void BetterPause::clearQuickSettings() {
 void BetterPause::onPracticeMusicSyncRedirection(cocos2d::CCObject* pSender) {
 	auto toggleButton = reinterpret_cast<CCMenuItemToggler*>(pSender);
 	auto gameOptionsLayer = GameOptionsLayer::create(Utils::getplayLayerA());
-#ifdef GEODE_IS_MACOS
-	auto functionPointer = reinterpret_cast<void (*)()>(*reinterpret_cast<uintptr_t*>(gameOptionsLayer) + 0x508);
-	functionPointer();
-#else
 	gameOptionsLayer->show();
-#endif
 	gameOptionsLayer->onPracticeMusicSync(pSender);
-#ifdef GEODE_IS_MACOS
-	auto functionPointer2 = reinterpret_cast<void (*)(cocos2d::CCObject*)>(*reinterpret_cast<uintptr_t*>(gameOptionsLayer) + 0x529);
-	functionPointer2(nullptr);
-#else
 	gameOptionsLayer->onClose(nullptr);
-#endif
 
 	if (!GameStatsManager::sharedState()->isItemUnlocked(UnlockType::GJItem, 0x11)) {
 		toggleButton->m_offButton->setVisible(true);
@@ -1080,7 +997,7 @@ void BetterPause::findButtonsRecursively(CCNode* node, std::vector<std::string>&
 		return;
 
 
-	auto button = dynamic_cast<CCMenuItemSpriteExtra*>(node);
+	auto button = typeinfo_cast<CCMenuItemSpriteExtra*>(node);
 	if (button) {
 		auto id = button->getID();
 		if (std::find(buttonIds.begin(), buttonIds.end(), id) == buttonIds.end()) {
@@ -1090,7 +1007,7 @@ void BetterPause::findButtonsRecursively(CCNode* node, std::vector<std::string>&
 
 	for (size_t i = 0; i < node->getChildrenCount(); i++)
 	{
-		BetterPause::findButtonsRecursively(typeinfo_cast<CCNode*>(node->getChildren()->objectAtIndex(i)), buttonIds, buttonsExternals);
+		BetterPause::findButtonsRecursively(static_cast<CCNode*>(node->getChildren()->objectAtIndex(i)), buttonIds, buttonsExternals);
 	}
 }
 
@@ -1154,8 +1071,8 @@ void BetterPause::adjustLayerForAspectRatio() {
 		auto allChildrens = this->getChildren();
 		CCObject* node;
 		CCARRAY_FOREACH(allChildrens, node) {
-			auto child = dynamic_cast<CCNode*>(node);
-			if (auto child2 = dynamic_cast<ChallengesPage*>(node); child2) {
+			auto child = typeinfo_cast<CCNode*>(node);
+			if (auto child2 = typeinfo_cast<ChallengesPage*>(node); child2) {
 				child = child2->m_mainLayer;
 				float originalX = child->getPositionX();
 				float newX = originalX - displacementX;
@@ -1175,8 +1092,8 @@ void BetterPause::adjustLayerForAspectRatio() {
 		auto allChildrens = this->getChildren();
 		CCObject* node;
 		CCARRAY_FOREACH(allChildrens, node) {
-			auto child = dynamic_cast<CCNode*>(node);
-			if (auto child2 = dynamic_cast<ChallengesPage*>(node); child2) {
+			auto child = typeinfo_cast<CCNode*>(node);
+			if (auto child2 = typeinfo_cast<ChallengesPage*>(node); child2) {
 				child = child2->m_mainLayer;
 				float originalY = child->getPositionY();
 				float newY = originalY + (displacementY / 2);
@@ -1305,7 +1222,7 @@ void BetterPause::updateButtons() {
 	auto allChildrens = buttonsList->m_contentLayer->getChildren();
 	CCObject* node;
 	CCARRAY_FOREACH(allChildrens, node) {
-		auto child = dynamic_cast<CCNode*>(node);
+		auto child = static_cast<CCNode*>(node);
 
 		CCPoint nodeWorldPos = buttonsList->m_contentLayer->convertToWorldSpace(child->getPosition());
 
@@ -1324,10 +1241,10 @@ void BetterPause::updateButtons() {
 		float bottomCutOff = buttonsList->getPositionY() + (15.f * static_cast<float>(Mod::get()->getSettingValue<double>("tolerance-in-buttons-list")));
 
 		if (nodeWorldPos.y > topCutOff || nodeWorldPos.y < bottomCutOff) {
-			typeinfo_cast<cocos2d::CCMenu*>(child->getChildren()->objectAtIndex(0))->setEnabled(false);
+			static_cast<cocos2d::CCMenu*>(child->getChildren()->objectAtIndex(0))->setEnabled(false);
 		}
 		else {
-			typeinfo_cast<cocos2d::CCMenu*>(child->getChildren()->objectAtIndex(0))->setEnabled(true);
+			static_cast<cocos2d::CCMenu*>(child->getChildren()->objectAtIndex(0))->setEnabled(true);
 		}
 	}
 
@@ -1363,17 +1280,17 @@ void BetterPause::setEnabledForButtons(bool enabled) {
 	auto allChildrens = buttonsList->m_contentLayer->getChildren();
 	CCObject* node;
 	CCARRAY_FOREACH(allChildrens, node) {
-		CCNode* child = dynamic_cast<CCNode*>(node);
+		CCNode* child = typeinfo_cast<CCNode*>(node);
 		if (child) {
 			CCArray* children = child->getChildren();
 			if (children && children->count() > 0) {
-				CCNode* innerChild = dynamic_cast<CCNode*>(children->objectAtIndex(0));
+				CCNode* innerChild = typeinfo_cast<CCNode*>(children->objectAtIndex(0));
 				if (innerChild) {
-					CCMenu* ccmenu = dynamic_cast<CCMenu*>(innerChild);
+					CCMenu* ccmenu = typeinfo_cast<CCMenu*>(innerChild);
 					if (ccmenu) {
 						CCArray* menuItems = ccmenu->getChildren();
 						if (menuItems && menuItems->count() > 0) {
-							CCMenuItemSpriteExtra* btn = dynamic_cast<CCMenuItemSpriteExtra*>(menuItems->objectAtIndex(0));
+							CCMenuItemSpriteExtra* btn = typeinfo_cast<CCMenuItemSpriteExtra*>(menuItems->objectAtIndex(0));
 							if (btn) {
 								btn->unselected();
 								btn->setEnabled(enabled);
@@ -1387,15 +1304,15 @@ void BetterPause::setEnabledForButtons(bool enabled) {
 }
 
 void BetterPause::setVisibleNodesSimplePause(bool isVisible) {
-	auto bgPause = dynamic_cast<cocos2d::extension::CCScale9Sprite*>(pauseLayer->getChildByID("background"));
-	auto titleLevel = dynamic_cast<cocos2d::CCLabelBMFont*>(pauseLayer->getChildByID("level-name"));
-	auto barNormal = dynamic_cast<cocos2d::CCSprite*>(pauseLayer->getChildByID("normal-progress-bar"));
-	auto barPractice = dynamic_cast<cocos2d::CCSprite*>(pauseLayer->getChildByID("practice-progress-bar"));
-	auto perNormal = dynamic_cast<cocos2d::CCLabelBMFont*>(pauseLayer->getChildByID("normal-progress-label"));
-	auto perPractice = dynamic_cast<cocos2d::CCLabelBMFont*>(pauseLayer->getChildByID("practice-progress-label"));
-	auto buttonsMenu = dynamic_cast<cocos2d::CCMenu*>(pauseLayer->getChildByID("center-button-menu"));
-	auto pointsLabel = dynamic_cast<cocos2d::CCLabelBMFont*>(pauseLayer->getChildByID("points-label"));
-	auto timeLabel = dynamic_cast<cocos2d::CCLabelBMFont*>(pauseLayer->getChildByID("play-time"));
+	auto bgPause = static_cast<cocos2d::extension::CCScale9Sprite*>(pauseLayer->getChildByID("background"));
+	auto titleLevel = static_cast<cocos2d::CCLabelBMFont*>(pauseLayer->getChildByID("level-name"));
+	auto barNormal = static_cast<cocos2d::CCSprite*>(pauseLayer->getChildByID("normal-progress-bar"));
+	auto barPractice = static_cast<cocos2d::CCSprite*>(pauseLayer->getChildByID("practice-progress-bar"));
+	auto perNormal = static_cast<cocos2d::CCLabelBMFont*>(pauseLayer->getChildByID("normal-progress-label"));
+	auto perPractice = static_cast<cocos2d::CCLabelBMFont*>(pauseLayer->getChildByID("practice-progress-label"));
+	auto buttonsMenu = static_cast<cocos2d::CCMenu*>(pauseLayer->getChildByID("center-button-menu"));
+	auto pointsLabel = static_cast<cocos2d::CCLabelBMFont*>(pauseLayer->getChildByID("points-label"));
+	auto timeLabel = static_cast<cocos2d::CCLabelBMFont*>(pauseLayer->getChildByID("play-time"));
 
 	bgPause->setVisible(isVisible);
 	titleLevel->setVisible(isVisible);

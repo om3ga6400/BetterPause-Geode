@@ -9,7 +9,7 @@ $on_mod(Loaded) {
 	//matdash::create_console();
 #endif
 	BetterPauseManager::sharedState()->loadState();
-	Mod::get()->addCustomSetting<SettingQuickSettingsValue>("Quick-Settings-Select", "none");
+	(void)Mod::get()->registerCustomSettingType("quick-settings-select", &SettingQuickSettingsValue::parse);
 	//std::cout << "0x" << std::hex << offsetof(AttemptAtReversingDialogObject, m_content) << std::endl;
 }
 

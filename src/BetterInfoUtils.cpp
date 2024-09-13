@@ -15,7 +15,7 @@ CCSprite* BetterInfo::createWithBISpriteFrameName(const char* name) {
 }
 
 CCSprite* BetterInfo::createBISprite(const char* name) {
-    name = Mod::get()->expandSpriteName(name);
+    name = Mod::get()->expandSpriteName(name).data();
     auto sprite = CCSprite::create(name);
     if (sprite) return sprite;
 
@@ -472,19 +472,29 @@ void BetterInfo::loadImportantNotices(CCLayer* layer) {
 
     layer->retain();
 
-    web::AsyncWebRequest().fetch(fmt::format("https://geometrydash.eu/mods/betterinfo/_api/importantNotices/?platform={}&version={}", GEODE_PLATFORM_NAME, Mod::get()->getVersion().toString(true))).json().then([layer](const matjson::Value& info) {
-        auto notice = info.try_get("notice");
-        if (notice == std::nullopt) return;
+    static std::optional<web::WebTask> noticeTask = std::nullopt;
+    noticeTask = web::WebRequest().get(fmt::format("https://geometrydash.eu/mods/betterinfo/_api/importantNotices/?platform={}&version={}", GEODE_PLATFORM_NAME, Mod::get()->getVersion().toVString(true))).map([layer](web::WebResponse* res) {
+        if (res->ok()) {
+            auto info = res->json().value();
+            auto notice = info.try_get("notice");
+            if (notice == std::nullopt) {
+                noticeTask = std::nullopt;
+                return *res;
+            }
 
-        if (info["notice"].is_string()) {
-            auto alert = FLAlertLayer::create("BetterInfo", info["notice"].as_string(), "OK");
-            alert->m_scene = layer;
-            alert->show();
-            layer->release();
-        }
-        }).expect([](const std::string& error) {
-            log::warn("Fetching important notices failed: {}", error);
+            if (info["notice"].is_string()) Loader::get()->queueInMainThread([info, layer] {
+                auto alert = FLAlertLayer::create("BetterInfo", info["notice"].as_string(), "OK");
+                alert->m_scene = layer;
+                alert->show();
+                layer->release();
             });
+        } else {
+            log::warn("Fetching important notices failed: {}", res->string().value());
+        }
+
+        noticeTask = std::nullopt;
+        return *res;
+    });
 
         /**
          * Music Library
@@ -492,21 +502,22 @@ void BetterInfo::loadImportantNotices(CCLayer* layer) {
 #ifdef GEODE_IS_WINDOWS
         auto libraryPath = dirs::getSaveDir() / "musiclibrary.dat";
 
-        if (ghc::filesystem::exists(libraryPath)) {
+        if (std::filesystem::exists(libraryPath)) {
 
             auto contentResult = file::readString(libraryPath);
             if (contentResult.isOk()) {
 
-                web::AsyncWebRequest()
-                    .postRequest()
-                    .bodyRaw(fmt::format("content={}", contentResult.unwrap()))
-                    .fetch("https://geometrydash.eu/mods/betterinfo/_api/musicLibrary/")
-                    .text()
-                    .then([layer](const std::string& info) {
-                    log::info("Music Library response: {}", info);
-                        }).expect([](const std::string& error) {
-                            log::warn("Music Library error: {}", error);
-                            });
+                static std::optional<web::WebTask> musicLibraryTask = std::nullopt;
+                musicLibraryTask = web::WebRequest().bodyString(fmt::format("content={}", contentResult.unwrap())).post("https://geometrydash.eu/mods/betterinfo/_api/musicLibrary/").map([](web::WebResponse* res) {
+                    if (res->ok()) {
+                        log::info("Music Library response: {}", res->string().value());
+                    } else {
+                        log::warn("Music Library error: {}", res->string().value());
+                    }
+
+                    musicLibraryTask = std::nullopt;
+                    return *res;
+                });
 
             }
 
@@ -630,15 +641,14 @@ UnlockType BetterInfo::iconTypeToUnlockType(IconType type) {
 }
 
 AxisLayoutOptions* BetterInfo::copyLayoutOptions(CCNode* a) {
-    return copyLayoutOptions(typeinfo_cast<AxisLayoutOptions*>(a->getLayoutOptions()));
+    return copyLayoutOptions(static_cast<AxisLayoutOptions*>(a->getLayoutOptions()));
 }
 
 AxisLayoutOptions* BetterInfo::copyLayoutOptions(AxisLayoutOptions* a) {
     if (!a) return nullptr;
 
     return AxisLayoutOptions::create()
-        ->setMaxScale(a->getMaxScale())
-        ->setMinScale(a->getMinScale())
+        ->setScaleLimits(a->getMinScale(), a->getMaxScale())
         ->setRelativeScale(a->getRelativeScale())
         ->setLength(a->getLength())
         ->setPrevGap(a->getPrevGap())

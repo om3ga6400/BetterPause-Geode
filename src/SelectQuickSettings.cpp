@@ -16,27 +16,12 @@ void SelectQuickSettings::handleOptionsLayers() {
 	SelectQuickSettings::GameOptionsLayer_getSettings = true;
 
 	auto gameOptionsLayer = GameOptionsLayer::create(Utils::getplayLayerA());
-#ifdef GEODE_IS_MACOS
-	auto functionPointer = reinterpret_cast<void (*)()>(*reinterpret_cast<uintptr_t*>(gameOptionsLayer) + 0x508);
-	functionPointer();
-#else
 	gameOptionsLayer->show();
-#endif
 	cocos2d::CCTouchDispatcher::get()->unregisterForcePrio(gameOptionsLayer);
-#ifdef GEODE_IS_MACOS
-	auto functionPointer2 = reinterpret_cast<void (*)(cocos2d::CCObject*)>(*reinterpret_cast<uintptr_t*>(gameOptionsLayer) + 0x529);
-	functionPointer2(nullptr);
-#else
 	gameOptionsLayer->onClose(nullptr);
-#endif
 
 	auto moreOptionsLayer = MoreOptionsLayer::create();
-#ifdef GEODE_IS_MACOS
-	auto functionPointer3 = reinterpret_cast<void (*)()>(*reinterpret_cast<uintptr_t*>(moreOptionsLayer) + 0x508);
-	functionPointer3();
-#else
 	moreOptionsLayer->show();
-#endif
 	cocos2d::CCTouchDispatcher::get()->unregisterForcePrio(moreOptionsLayer);
 	moreOptionsLayer->onClose(nullptr);
 }
@@ -226,7 +211,7 @@ void SelectQuickSettings::onToggleWithGameVariable(CCObject* pSender)
 		auto gameOptionsLayer = GameOptionsLayer::create(Utils::getplayLayerA());
 
 		auto arr = CCArray::create();
-		arr->addObject(AttemptAtReversingDialogObject::create(gd::string("Scratch"), gd::string("What's the <cl>point</c> of adding it if you don't have it <cr>unlocked?</c>"), 13, 1, false, { 255,255,255 }));
+		arr->addObject(DialogObject::create("Scratch", "What's the <cl>point</c> of adding it if you don't have it <cr>unlocked?</c>", 13, 1, false, { 255,255,255 }));
 		auto dl = DialogLayer::createDialogLayer(nullptr, arr, 2);
 		dl->animateInRandomSide();
 		CCScene::get()->addChild(dl, CCScene::get()->getHighestChildZ());

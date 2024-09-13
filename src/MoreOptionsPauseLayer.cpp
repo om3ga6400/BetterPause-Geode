@@ -146,13 +146,12 @@ void MoreOptionsPauseLayer::onOptionsGame(cocos2d::CCObject* pSender)
 
 void MoreOptionsPauseLayer::onOptionsPause(cocos2d::CCObject* pSender)
 {
+	#ifndef GEODE_IS_WINDOWS
 	auto dropDown = GameOptionsLayer::create(Utils::getplayLayerA());
-#ifdef GEODE_IS_MACOS
-	auto functionPointer = reinterpret_cast<void (*)()>(*reinterpret_cast<uintptr_t*>(dropDown) + 0x508);
-	functionPointer();
-#else
 	dropDown->show();
-#endif
+	#else // broken on windows
+	reinterpret_cast<void(__thiscall*)(PauseLayer*, CCObject*)>(base::get() + 0x35b8e0)(nullptr, nullptr);
+	#endif
 	//this->addChild(dropDown);
 	//dropDown->setPosition(0.0f, 0.0f);
 }

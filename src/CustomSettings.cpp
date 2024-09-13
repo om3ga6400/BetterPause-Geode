@@ -1,7 +1,7 @@
 #include "CustomSettings.hpp"
 
-SettingNode* SettingQuickSettingsValue::createNode(float width) {
-    return SettingQuickSettingsNode::create(this, width);
+SettingNodeV3* SettingQuickSettingsValue::createNode(float width) {
+    return SettingQuickSettingsNode::create(std::static_pointer_cast<SettingQuickSettingsValue>(shared_from_this()), width);
 }
 
 void SettingQuickSettingsNode::onQuickSettings(CCObject* sender) {

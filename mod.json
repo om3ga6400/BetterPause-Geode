@@ -1,8 +1,9 @@
 {
-  "geode": "2.0.0",
+  "geode": "3.6.0",
   "gd": {
-    "win": "2.204",
-    "android": "2.205"
+    "win": "2.206",
+    "android": "2.206",
+    "mac": "2.206"
   },
   "version": "v1.6.8",
   "id": "tpdea.betterpause-better",
@@ -59,8 +60,7 @@
     },
     "Quick-Settings-Select": {
       "name": "Quick Settings Select",
-      "description": "NONE",
-      "type": "custom"
+      "type": "custom:quick-settings-select"
     },
     "disable-arrow-buttons": {
       "name": "Disable Arrow Buttons",
@@ -164,7 +164,7 @@
       "resources/*.png"
     ]
   },
-  "tags": [ "Customization", "Interface", "Enhancement" ],
+  "tags": [ "customization", "interface", "enhancement" ],
   "dependencies": [
     {
       "id": "geode.node-ids",

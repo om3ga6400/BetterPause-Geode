@@ -12,10 +12,10 @@ class MoreOptionsPauseLayer : public Popup<CCNode*>, public cocos2d::CCTextField
 public:
 	static MoreOptionsPauseLayer* create(CCNode* ref);
 	bool setup(CCNode* ref) override;
-	void onClose(CCObject* pSender);
+	void onClose(CCObject* pSender) override;
 	void onOptionsGame(CCObject* pSender);
 	void onOptionsPause(CCObject* pSender);
-	void keyDown(cocos2d::enumKeyCodes key);
+	void keyDown(cocos2d::enumKeyCodes key) override;
 	void onSettingsMod(CCObject* pSender);
 	
 	CCNode* betterPauseRef = nullptr;

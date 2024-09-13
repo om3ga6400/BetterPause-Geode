@@ -1,6 +1,6 @@
 #pragma once
+#include <Geode/Geode.hpp>
 
-#include <Geode/utils/general.hpp>
 using namespace geode::prelude;
 
 namespace BetterInfo {

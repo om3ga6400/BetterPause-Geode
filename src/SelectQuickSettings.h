@@ -17,9 +17,9 @@ public:
 
 	static bool GameOptionsLayer_getSettings;
 	static SelectQuickSettings* create(bool);
-	virtual void keyBackClicked();
-	virtual void onClose(CCObject* pSender);
-	void keyDown(cocos2d::enumKeyCodes key);
+	virtual void keyBackClicked() override;
+	virtual void onClose(CCObject* pSender) override;
+	void keyDown(cocos2d::enumKeyCodes key) override;
 	void onToggleWithGameVariable(CCObject* pSender);
 	void handleOptionsLayers();
 

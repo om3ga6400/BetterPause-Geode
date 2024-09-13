@@ -1,5 +1,5 @@
 #pragma once
-#include <Geode/loader/SettingNode.hpp>
+#include <Geode/loader/SettingV3.hpp>
 #include "SelectQuickSettings.h"
 using namespace geode::prelude;
 
@@ -9,12 +9,15 @@ using namespace geode::prelude;
 
 class SettingQuickSettingsValue;
 
-class SettingQuickSettingsValue : public SettingValue {
-protected:
-    std::string m_placeholder;
+class SettingQuickSettingsValue : public SettingV3 {
 public:
-    SettingQuickSettingsValue(std::string const& key, std::string const& modID, std::string const& placeholder)
-        : SettingValue(key, modID), m_placeholder(placeholder) {}
+    static Result<std::shared_ptr<SettingQuickSettingsValue>> parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
+        auto setting = std::make_shared<SettingQuickSettingsValue>();
+        auto root = checkJson(json, "SettingQuickSettingsValue");
+        setting->init(key, modID);
+        setting->parseNameAndDescription(root);
+        return root.ok(setting);
+    }
 
     bool load(matjson::Value const& json) override {
         return true;
@@ -22,21 +25,21 @@ public:
     bool save(matjson::Value& json) const override {
         return true;
     }
-    SettingNode* createNode(float width) override;
+    bool isDefaultValue() const override {
+        return true;
+    }
+    void reset() override {}
+    SettingNodeV3* createNode(float width) override;
 };
 
 
-class SettingQuickSettingsNode : public SettingNode {
+class SettingQuickSettingsNode : public SettingNodeV3 {
 protected:
-    bool init(SettingQuickSettingsValue* value, float width) {
-        if (!SettingNode::init(value))
+    bool init(std::shared_ptr<SettingQuickSettingsValue> value, float width) {
+        if (!SettingNodeV3::init(value, width))
             return false;
         this->setContentSize({ width, 35.f });
         auto menu = CCMenu::create();
-        auto label = CCLabelBMFont::create("Quick Settings Select", "bigFont.fnt");
-        label->setScale(0.3f);
-        label->setPositionX(-153.f);
-        label->setAnchorPoint({ 0.f, 0.5 });
         auto opSpr = CCSprite::createWithSpriteFrameName("GJ_optionsBtn_001.png");
         opSpr->setScale(0.6f);
         //auto infoBtn
@@ -47,7 +50,6 @@ protected:
         );
         qssBtn->setPositionX(140);
         menu->setPosition(width / 2, 18.f);
-        menu->addChild(label);
         menu->addChild(qssBtn);
         this->addChild(menu);
         return true;
@@ -57,28 +59,27 @@ public:
     // because for some reason SettingNode doesnt expose description, i have to do all of this, smh.
     void onQuickSettings(CCObject*);
 
-    void commit() override {
+    void onCommit() override {
         // Let the UI know you have committed the value
-        this->dispatchCommitted();
     }
 
     // Geode calls this to query if the setting value has been changed, 
     // and those changes haven't been committed
-    bool hasUncommittedChanges() override {
+    bool hasUncommittedChanges() const override {
         return false;
     }
 
     // Geode calls this to query if the setting has a value that is 
     // different from its default value
-    bool hasNonDefaultValue() override {
-        return true;
+    bool hasNonDefaultValue() const override {
+        return false;
     }
 
     // Geode calls this to reset the setting's value back to default
-    void resetToDefault() override {
+    void onResetToDefault() override {
 
     }
-    static SettingQuickSettingsNode* create(SettingQuickSettingsValue* value, float width) {
+    static SettingQuickSettingsNode* create(std::shared_ptr<SettingQuickSettingsValue> value, float width) {
         auto ret = new SettingQuickSettingsNode;
         if (ret && ret->init(value, width)) {
             ret->autorelease();

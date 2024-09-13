@@ -19,6 +19,7 @@
 #include "CustomSettings.hpp"
 #include "SelectQuickSettings.h"
 #include <Geode/modify/CCScrollLayerExt.hpp>
+#include <Geode/modify/TableView.hpp>
 #include "CoinsViewerSprites.hpp"
 
 using namespace geode::prelude;
@@ -33,32 +34,31 @@ class ButtonsClass : public FLAlertLayerProtocol {
 };
 
 class $modify(PauseLayer) {
-
-	bool hasPosibleExitHotKey = false;
-	bool hasConfirmPopup = false;
+	struct Fields {
+		bool hasPosibleExitHotKey = false;
+		bool hasConfirmPopup = false;
+	};
 
 	static void onModify(auto & self) {
-		self.setHookPriority("PauseLayer::create", -99);
+		(void)self.setHookPriority("PauseLayer::customSetup", -99);
 	}
 
-	static PauseLayer* create(bool isEditor) {
-		auto ret = PauseLayer::create(isEditor);
+	void customSetup() {
+		PauseLayer::customSetup();
 
 		if (Mod::get()->getSettingValue<int64_t>("type-pause")) {
-			for (size_t i = 1; i < ret->getChildrenCount(); i++)
+			for (size_t i = 1; i < getChildrenCount(); i++)
 			{
-				auto node = dynamic_cast<cocos2d::CCNode*>(ret->getChildren()->objectAtIndex(i));
+				auto node = typeinfo_cast<cocos2d::CCNode*>(getChildren()->objectAtIndex(i));
 				if (node)
 				{
 					node->setVisible(false);
 				}
 			}
 
-			auto betterPauseMenu = BetterPause::create(ret);
-			ret->addChild(betterPauseMenu, 100);
+			auto betterPauseMenu = BetterPause::create(this);
+			addChild(betterPauseMenu, 100);
 		}
-
-		return ret;
 	}
 
 	void onResume(cocos2d::CCObject * sender) {
@@ -80,7 +80,7 @@ class $modify(PauseLayer) {
 
 		auto popuBetterPause = Utils::shareDirectorA()->getRunningScene()->getChildByID("popup-betterpause");
 
-		auto betterPause = typeinfo_cast<BetterPause*>(this->getChildByID("better-pause-node"));
+		auto betterPause = static_cast<BetterPause*>(this->getChildByID("better-pause-node"));
 
 		if (betterPause) {
 			if (betterPause->questMenu) {
@@ -91,7 +91,7 @@ class $modify(PauseLayer) {
 
 
 		while (popuBetterPause) {
-			typeinfo_cast<FLAlertLayer*>(popuBetterPause)->keyBackClicked();
+			static_cast<FLAlertLayer*>(popuBetterPause)->keyBackClicked();
 
 			popuBetterPause = Utils::shareDirectorA()->getRunningScene()->getChildByID("popup-betterpause");
 		}
@@ -224,16 +224,6 @@ class $modify(PauseLayer) {
 		m_fields->hasPosibleExitHotKey = false;
 	}
 
-#ifdef GEODE_IS_MACOS
-	void onQuit(cocos2d::CCObject* sender) {
-		if (m_fields->hasPosibleExitHotKey) {
-			return;
-		}
-
-		PauseLayer::onQuit(sender);
-	}
-
-#else
 	void tryQuit(cocos2d::CCObject* sender) {
 		if (m_fields->hasPosibleExitHotKey) {
 			return;
@@ -241,8 +231,6 @@ class $modify(PauseLayer) {
 
 		PauseLayer::tryQuit(sender);
 	}
-
-#endif
 };
 
 class $modify(PlayLayer) {
@@ -267,41 +255,13 @@ class $modify(PlayLayer) {
 
 		auto effectGameObjectPtr = reinterpret_cast<EffectGameObject*>(p0);
 
-		intptr_t offsetTypeObject = 0;
-		intptr_t offsetPointsXObj = 0;
-
-#ifdef GEODE_IS_WINDOWS
-		offsetTypeObject = 0x31c;
-		offsetPointsXObj = 0x5f8;
-#endif
-
-#ifdef GEODE_IS_ANDROID64
-		offsetTypeObject = 0x388;
-		offsetPointsXObj = 0x690;
-#endif
-
-#ifdef GEODE_IS_ANDROID32
-		offsetTypeObject = 0x308;
-		offsetPointsXObj = 0x5e4;
-#endif
-
-#ifdef GEODE_IS_MACOS
-		offsetTypeObject = 0x398;
-		offsetPointsXObj = 0x6a0;
-#endif
 		if (effectGameObjectPtr) {
-			if (Utils::from<int>(effectGameObjectPtr, offsetTypeObject) == 0x1e) {
-				ProgressPlataformerBetter::m_totalPoints += Utils::from<int>(effectGameObjectPtr, offsetPointsXObj);
+			if (effectGameObjectPtr->m_objectType == GameObjectType::Collectible) {
+				ProgressPlataformerBetter::m_totalPoints += effectGameObjectPtr->m_collectiblePoints;
 			}
 		}
 
-		GameObjectType objTypeV = GameObjectType::Solid;
-
-#ifdef GEODE_IS_MACOS
-		objTypeV = Utils::from<GameObjectType>(p0, 0x398);
-#else
-		objTypeV = p0->m_objectType;
-#endif
+		GameObjectType objTypeV = p0->m_objectType;
 
 
 		bool isCoin = objTypeV == GameObjectType::SecretCoin || objTypeV == GameObjectType::UserCoin;
@@ -326,7 +286,7 @@ class $modify(PlayLayer) {
 		PlayLayer::showNewBest(p0, p1, p2, p3, p4, p5);
 	}
 
-	TodoReturn levelComplete()
+	void levelComplete()
 	{
 		if (this->m_isTestMode && this->m_level->m_levelType != GJLevelType::Editor)
 		{
@@ -400,7 +360,7 @@ class $modify(MoreOptionsLayer) {
 class $modify(GameOptionsLayer) {
 
 
-	static GameOptionsLayer* create(GJBaseGameLayer * layer) {
+	void setupOptions() {
 
 		BetterPause::quickSettingsNamesG.clear();
 		BetterPause::quickSettingsNumbersG.clear();
@@ -409,12 +369,10 @@ class $modify(GameOptionsLayer) {
 		if (Utils::getplayLayerA()) {
 			SelectQuickSettings::GameOptionsLayer_getSettings = true;
 		}
-
-		auto ret = GameOptionsLayer::create(layer);
+		
+		GameOptionsLayer::setupOptions();
 
 		SelectQuickSettings::GameOptionsLayer_getSettings = false;
-
-		return ret;
 	}
 
 };
@@ -423,26 +381,23 @@ class $modify(GameOptionsLayer) {
 
 
 class $modify(GJOptionsLayer) {
+	struct Fields {
+		bool m_initialized = false;
+	};
 
-	bool init(int idk) {
-
-		BetterPause::quickSettingsNamesG.clear();
-		BetterPause::quickSettingsNumbersG.clear();
-		BetterPause::quickSettingsEnabledG.clear();
-
-		BetterPause::quickSettingsNamesG.resize(99);
-		BetterPause::quickSettingsNumbersG.resize(99);
-		BetterPause::quickSettingsEnabledG.resize(99);
-
-		auto ret = GJOptionsLayer::init(idk);
-
-
-
-		return ret;
-	}
-
-	TodoReturn addToggleInternal(char const* p1, int p2, bool p3, char const* p4) {
+	void addToggleInternal(char const* p1, int p2, bool p3, char const* p4) {
 		GJOptionsLayer::addToggleInternal(p1, p2, p3, p4);
+		if (!m_fields->m_initialized) {
+			m_fields->m_initialized = true;
+
+			BetterPause::quickSettingsNamesG.clear();
+			BetterPause::quickSettingsNumbersG.clear();
+			BetterPause::quickSettingsEnabledG.clear();
+
+			BetterPause::quickSettingsNamesG.resize(99);
+			BetterPause::quickSettingsNumbersG.resize(99);
+			BetterPause::quickSettingsEnabledG.resize(99);
+		}
 		if (SelectQuickSettings::GameOptionsLayer_getSettings) {
 			if (p2 > 0 && p2 <= 10) {
 				BetterPause::quickSettingsNamesG[p2 - 1] = p1;
@@ -455,19 +410,6 @@ class $modify(GJOptionsLayer) {
 };
 
 class $modify(CustomSongWidget) {
-	void updateSongObject(SongInfoObject * obj) {
-		CustomSongWidget::updateSongObject(obj);
-
-		if (Utils::getplayLayerA() && this->m_artistLabel && this->m_moreBtn) {
-			CCPoint labelPos = this->m_artistLabel->getPosition();
-			auto labelWidth = this->m_artistLabel->getContentSize().width * this->m_artistLabel->getScale();
-
-			auto menuItemX = labelPos.x + labelWidth - (Utils::WinSize().width / 2) + 30.f;
-
-			this->m_moreBtn->setPositionX(menuItemX);
-		}
-	}
-
 	void updateSongInfo() {
 		CustomSongWidget::updateSongInfo();
 
@@ -487,7 +429,7 @@ class $modify(CCScrollLayerExt) {
 		CCScrollLayerExt::ccTouchMoved(p0, p1);
 		if (Utils::hasParentWithID(this, "better-pause-node")) {
 
-			auto betterPause = typeinfo_cast<BetterPause*>(Utils::getParentWithID(this, "better-pause-node"));
+			auto betterPause = static_cast<BetterPause*>(Utils::getParentWithID(this, "better-pause-node"));
 			betterPause->updateButtons();
 			betterPause->setEnabledForButtons(false);
 		}
@@ -496,7 +438,7 @@ class $modify(CCScrollLayerExt) {
 	void ccTouchEnded(CCTouch * pTouch, CCEvent * pEvent) {
 		CCScrollLayerExt::ccTouchEnded(pTouch, pEvent);
 		if (Utils::hasParentWithID(this, "better-pause-node")) {
-			auto betterPause = typeinfo_cast<BetterPause*>(Utils::getParentWithID(this, "better-pause-node"));
+			auto betterPause = static_cast<BetterPause*>(Utils::getParentWithID(this, "better-pause-node"));
 			betterPause->setEnabledForButtons(true);
 			betterPause->updateButtons();
 		}
@@ -505,16 +447,18 @@ class $modify(CCScrollLayerExt) {
 	void ccTouchCancelled(CCTouch * pTouch, CCEvent * pEvent) {
 		CCScrollLayerExt::ccTouchCancelled(pTouch, pEvent);
 		if (Utils::hasParentWithID(this, "better-pause-node")) {
-			auto betterPause = typeinfo_cast<BetterPause*>(Utils::getParentWithID(this, "better-pause-node"));
+			auto betterPause = static_cast<BetterPause*>(Utils::getParentWithID(this, "better-pause-node"));
 			betterPause->setEnabledForButtons(true);
 			betterPause->updateButtons();
 		}
 	}
+};
 
-	TodoReturn scrollLayer(float p0) {
-		CCScrollLayerExt::scrollLayer(p0);
+class $modify(TableView) {
+	void scrollWheel(float p0, float p1) {
+		TableView::scrollWheel(p0, p1);
 		if (Utils::hasParentWithID(this, "better-pause-node")) {
-			typeinfo_cast<BetterPause*>(Utils::getParentWithID(this, "better-pause-node"))->updateButtons();
+			static_cast<BetterPause*>(Utils::getParentWithID(this, "better-pause-node"))->updateButtons();
 		}
 	}
 };
@@ -524,7 +468,7 @@ class $modify(InfoLayer) {
 	void onClose(cocos2d::CCObject * sender) {
 		InfoLayer::onClose(sender);
 		if (auto pauseLayer = CCScene::get()->getChildByID("PauseLayer"); pauseLayer) {
-			if (auto betterPause = typeinfo_cast<BetterPause*>(pauseLayer->getChildByID("better-pause-node")); betterPause) {
+			if (auto betterPause = static_cast<BetterPause*>(pauseLayer->getChildByID("better-pause-node")); betterPause) {
 				handleTouchPriority(pauseLayer);
 				handleTouchPriority(betterPause);
 			}
