@@ -37,7 +37,7 @@ jobs:
         with:
           combine: true
           target: ${{ matrix.config.target }}
-          bindings: hiimjutin000/bindings
+          bindings: hiimjustin000/bindings
           bindings-ref: patch-4
           
   package:
