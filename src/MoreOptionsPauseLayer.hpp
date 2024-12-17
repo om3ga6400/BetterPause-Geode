@@ -17,6 +17,7 @@ public:
 	void onOptionsPause(CCObject* pSender);
 	void keyDown(cocos2d::enumKeyCodes key) override;
 	void onSettingsMod(CCObject* pSender);
+	void show() override;
 	
 	CCNode* betterPauseRef = nullptr;
 	cocos2d::extension::CCScale9Sprite* m_pBGOptions = nullptr;

@@ -11,12 +11,12 @@ class SettingQuickSettingsValue;
 
 class SettingQuickSettingsValue : public SettingV3 {
 public:
-    static Result<std::shared_ptr<SettingQuickSettingsValue>> parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
+    static Result<std::shared_ptr<SettingV3>> parse(std::string const& key, std::string const& modID, matjson::Value const& json) {
         auto setting = std::make_shared<SettingQuickSettingsValue>();
         auto root = checkJson(json, "SettingQuickSettingsValue");
         setting->init(key, modID);
         setting->parseNameAndDescription(root);
-        return root.ok(setting);
+        return root.ok(std::static_pointer_cast<SettingV3>(setting));
     }
 
     bool load(matjson::Value const& json) override {

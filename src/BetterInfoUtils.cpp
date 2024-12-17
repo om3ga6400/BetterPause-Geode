@@ -278,13 +278,13 @@ CCDictionary* BetterInfo::responseToDict(const std::string& response) {
 void BetterInfo::reloadUsernames(LevelBrowserLayer* levelBrowserLayer) {
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-    auto listLayer = getChildOfType<GJListLayer>(levelBrowserLayer, 0);
+    auto listLayer = levelBrowserLayer->getChildByType<GJListLayer>(0);
     if (!listLayer) return;
-    auto listView = getChildOfType<CustomListView>(listLayer, 0);
+    auto listView = listLayer->getChildByType<CustomListView>(0);
     if (!listView) return;
-    auto tableView = getChildOfType<TableView>(listView, 0);
+    auto tableView = listView->getChildByType<TableView>(0);
     if (!tableView) return;
-    auto contentLayer = getChildOfType<CCContentLayer>(tableView, 0);
+    auto contentLayer = tableView->getChildByType<CCContentLayer>(0);
     if (!contentLayer) return;
     auto children = CCArrayExt<CCNode*>(contentLayer->getChildren());
 
@@ -475,21 +475,20 @@ void BetterInfo::loadImportantNotices(CCLayer* layer) {
     static std::optional<web::WebTask> noticeTask = std::nullopt;
     noticeTask = web::WebRequest().get(fmt::format("https://geometrydash.eu/mods/betterinfo/_api/importantNotices/?platform={}&version={}", GEODE_PLATFORM_NAME, Mod::get()->getVersion().toVString(true))).map([layer](web::WebResponse* res) {
         if (res->ok()) {
-            auto info = res->json().value();
-            auto notice = info.try_get("notice");
-            if (notice == std::nullopt) {
+            auto info = res->json().unwrapOr(matjson::Value());
+            if (!info.contains("notice")) {
                 noticeTask = std::nullopt;
                 return *res;
             }
 
-            if (info["notice"].is_string()) Loader::get()->queueInMainThread([info, layer] {
-                auto alert = FLAlertLayer::create("BetterInfo", info["notice"].as_string(), "OK");
+            if (info["notice"].isString()) Loader::get()->queueInMainThread([info, layer] {
+                auto alert = FLAlertLayer::create("BetterInfo", info["notice"].asString().unwrap(), "OK");
                 alert->m_scene = layer;
                 alert->show();
                 layer->release();
             });
         } else {
-            log::warn("Fetching important notices failed: {}", res->string().value());
+            log::warn("Fetching important notices failed: {}", res->string().unwrapOr(""));
         }
 
         noticeTask = std::nullopt;
@@ -510,9 +509,9 @@ void BetterInfo::loadImportantNotices(CCLayer* layer) {
                 static std::optional<web::WebTask> musicLibraryTask = std::nullopt;
                 musicLibraryTask = web::WebRequest().bodyString(fmt::format("content={}", contentResult.unwrap())).post("https://geometrydash.eu/mods/betterinfo/_api/musicLibrary/").map([](web::WebResponse* res) {
                     if (res->ok()) {
-                        log::info("Music Library response: {}", res->string().value());
+                        log::info("Music Library response: {}", res->string().unwrapOr(""));
                     } else {
-                        log::warn("Music Library error: {}", res->string().value());
+                        log::warn("Music Library error: {}", res->string().unwrapOr(""));
                     }
 
                     musicLibraryTask = std::nullopt;

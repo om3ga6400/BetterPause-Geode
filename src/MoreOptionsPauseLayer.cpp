@@ -3,7 +3,7 @@
 MoreOptionsPauseLayer* MoreOptionsPauseLayer::create(CCNode* ref)
 {
 	auto node = new MoreOptionsPauseLayer();
-	if (node && node->init(250.f, 200.f, ref))
+	if (node && node->initAnchored(250.f, 200.f, ref))
 	{
 		node->autorelease();
 	}
@@ -17,36 +17,18 @@ MoreOptionsPauseLayer* MoreOptionsPauseLayer::create(CCNode* ref)
 bool MoreOptionsPauseLayer::setup(CCNode* ref)
 {
 
-	m_noElasticity = true;
-
 	this->betterPauseRef = ref;
 
-
-	m_mainLayer->setPosition({ Utils::WinSize().width * -1.f,  Utils::WinSize().height / 2.f});
-
-	this->m_bgSprite->initWithFile("GJ_square01.png");
-	this->m_bgSprite->setPosition({ 0.f, 0.f });
-	this->m_bgSprite->setContentSize({ 250.f, 200.f });
-
-	m_closeBtn->removeFromParentAndCleanup(true);
-
-	m_buttonMenu->setPosition({ -120.f, 95.f });
-	auto imageClose = cocos2d::CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
-	imageClose->setScale(0.7f);
-	m_closeBtn = CCMenuItemSpriteExtra::create(imageClose, this, (cocos2d::SEL_MenuHandler)&MoreOptionsPauseLayer::onClose);
-	m_buttonMenu->addChild(m_closeBtn);
-	m_buttonMenu->setZOrder(1);
-
-	auto animationEntry = cocos2d::CCEaseElasticOut::create((cocos2d::CCActionInterval*)cocos2d::CCMoveTo::create(0.5f, { Utils::WinSize().width / 2.f, Utils::WinSize().height / 2.f }), 1.f);
-	m_mainLayer->runAction(cocos2d::CCSequence::create((cocos2d::CCFiniteTimeAction*)animationEntry, nullptr));
+	m_closeBtn->getNormalImage()->setScale(0.7f);
+	m_closeBtn->updateSprite();
 
 	this->m_pTitleLayer = cocos2d::CCLabelBMFont::create("- Settings -", "goldFont.fnt");
 	this->m_pTitleLayer->setScale(0.7f);
-	this->m_pTitleLayer->setPositionY(84.f);
+	this->m_pTitleLayer->setPosition({ 125.f, 184.f });
 	m_mainLayer->addChild(this->m_pTitleLayer);
 
 	this->m_pUnderLine = cocos2d::CCSprite::createWithSpriteFrameName("floorLine_001.png");
-	this->m_pUnderLine->setPosition({ 0.f, 69.f });
+	this->m_pUnderLine->setPosition({ 125.f, 169.f });
 	this->m_pUnderLine->setScaleX(0.5f);
 	this->m_pUnderLine->setScaleY(0.8f);
 	this->m_pUnderLine->setOpacity(100);
@@ -54,7 +36,7 @@ bool MoreOptionsPauseLayer::setup(CCNode* ref)
 
 	this->m_pBGOptions = cocos2d::extension::CCScale9Sprite::create("GJ_square01.png");
 	this->m_pBGOptions->setContentSize({ 215.f, 145.f });
-	this->m_pBGOptions->setPositionY(-11.f);
+	this->m_pBGOptions->setPosition({ 125.f, 89.f });
 	this->m_pBGOptions->setColor({ 30, 30, 30 });
 	this->m_pBGOptions->setOpacity((GLubyte)70);
 	m_mainLayer->addChild(this->m_pBGOptions);
@@ -70,7 +52,7 @@ bool MoreOptionsPauseLayer::setup(CCNode* ref)
 	m_pBGRealOptionsPause->addChild(imageButtonRealPauseSettings);
 	m_pBGRealOptionsPause->addChild(txtRealOptionsPause);
 	auto m_pRealOptionsPause = CCMenuItemSpriteExtra::create(m_pBGRealOptionsPause, this, (cocos2d::SEL_MenuHandler)&MoreOptionsPauseLayer::onOptionsPause);
-	m_pRealOptionsPause->setPosition({ 115.f, -60.f });
+	m_pRealOptionsPause->setPosition({ 120.f, 135.f });
 	m_buttonMenu->addChild(m_pRealOptionsPause);
 
 	auto imageButtonSettings = cocos2d::CCSprite::createWithSpriteFrameName("GJ_optionsBtn02_001.png");
@@ -84,7 +66,7 @@ bool MoreOptionsPauseLayer::setup(CCNode* ref)
 	m_pBGOptionsGamePause->addChild(imageButtonSettings);
 	m_pBGOptionsGamePause->addChild(txtOptionGame);
 	auto m_pOptionsGamePause = CCMenuItemSpriteExtra::create(m_pBGOptionsGamePause, this, (cocos2d::SEL_MenuHandler)&MoreOptionsPauseLayer::onOptionsGame);
-	m_pOptionsGamePause->setPosition({ 115.f, -105.f });
+	m_pOptionsGamePause->setPosition({ 120.f, 90.f });
 	m_buttonMenu->addChild(m_pOptionsGamePause);
 
 
@@ -100,7 +82,7 @@ bool MoreOptionsPauseLayer::setup(CCNode* ref)
 	m_pBGOptionsGamePause2->addChild(imageButtonSettings2);
 	m_pBGOptionsGamePause2->addChild(txtOptionGame2);
 	auto m_pOptionsGamePause2 = CCMenuItemSpriteExtra::create(m_pBGOptionsGamePause2, this, (cocos2d::SEL_MenuHandler)&MoreOptionsPauseLayer::onSettingsMod);
-	m_pOptionsGamePause2->setPosition({ 115.f, -150.f });
+	m_pOptionsGamePause2->setPosition({ 120.f, 45.f });
 	m_buttonMenu->addChild(m_pOptionsGamePause2);
 
 	this->setMouseEnabled(true);
@@ -109,6 +91,30 @@ bool MoreOptionsPauseLayer::setup(CCNode* ref)
 	return true;
 }
 
+void MoreOptionsPauseLayer::show()
+{
+	if (m_noElasticity) return FLAlertLayer::show();
+
+	auto position = m_mainLayer->getPosition();
+	auto opacity = getOpacity();
+	m_mainLayer->setPositionX(-Utils::WinSize().width);
+	auto animationEntry = cocos2d::CCEaseElasticOut::create(cocos2d::CCMoveTo::create(0.5f, position), 1.f);
+	m_mainLayer->runAction(animationEntry);
+	auto scene = m_scene;
+	auto runningScene = Utils::shareDirectorA()->getRunningScene();
+	if (!scene) {
+		auto zOrderP = runningScene->getHighestChildZ() < 104 ? 105 : runningScene->getHighestChildZ();
+		if (zOrderP < 104) zOrderP = 105;
+		m_ZOrder = zOrderP;
+		scene = runningScene;
+	}
+	if (m_ZOrder == 0) m_ZOrder = 105;
+	scene->addChild(this, m_ZOrder);
+	this->setOpacity(0);
+	auto animationFade = cocos2d::CCFadeTo::create(0.14f, opacity);
+	this->runAction(animationFade);
+	setVisible(true);
+}
 
 void MoreOptionsPauseLayer::onClose(cocos2d::CCObject* pSender)
 {
@@ -146,12 +152,8 @@ void MoreOptionsPauseLayer::onOptionsGame(cocos2d::CCObject* pSender)
 
 void MoreOptionsPauseLayer::onOptionsPause(cocos2d::CCObject* pSender)
 {
-	#ifndef GEODE_IS_WINDOWS
 	auto dropDown = GameOptionsLayer::create(Utils::getplayLayerA());
 	dropDown->show();
-	#else // broken on windows
-	reinterpret_cast<void(__thiscall*)(PauseLayer*, CCObject*)>(base::get() + 0x35b8e0)(nullptr, nullptr);
-	#endif
 	//this->addChild(dropDown);
 	//dropDown->setPosition(0.0f, 0.0f);
 }

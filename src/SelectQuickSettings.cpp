@@ -4,7 +4,7 @@ bool SelectQuickSettings::GameOptionsLayer_getSettings = false;
 
 SelectQuickSettings* SelectQuickSettings::create(bool inGame) {
 	auto ret = new SelectQuickSettings();
-	if (ret && ret->init(440.f, 290.f, inGame)) {
+	if (ret && ret->initAnchored(440.f, 290.f, inGame)) {
 		ret->autorelease();
 		return ret;
 	}
@@ -31,24 +31,15 @@ bool SelectQuickSettings::setup(bool inGame)
 	m_noElasticity = true;
 	m_isInGame = inGame;
 
-	this->m_bgSprite->initWithFile("GJ_square01.png");
-	this->m_bgSprite->setContentSize({ 440.f, 290.f });
-	this->m_bgSprite->setPosition({ Utils::WinSize().width / 2.f, Utils::WinSize().height / 2.f });
-
-	m_buttonMenu->setPosition({ 0, 0 });
-	m_closeBtn->removeFromParentAndCleanup(true);
-	auto imageClose = cocos2d::CCSprite::createWithSpriteFrameName("GJ_backBtn_001.png");
-	m_closeBtn = CCMenuItemSpriteExtra::create(imageClose, this, (cocos2d::SEL_MenuHandler)&SelectQuickSettings::onClose);
-	m_closeBtn->setPosition({ Utils::WinSize().width / 2.f - 210.f, Utils::WinSize().height / 2 + 140.f });
-	m_buttonMenu->addChild(m_closeBtn);
+	m_closeBtn->setNormalImage(cocos2d::CCSprite::createWithSpriteFrameName("GJ_backBtn_001.png"));
 
 	this->m_pTitleLayer = cocos2d::CCLabelBMFont::create("- Select Quick Settings -", "bigFont.fnt");
 	this->m_pTitleLayer->setScale(0.7f);
-	this->m_pTitleLayer->setPosition({ Utils::WinSize().width / 2.f, Utils::WinSize().height / 2.f + 120.f });
+	this->m_pTitleLayer->setPosition({ 220.f, 265.f });
 	m_mainLayer->addChild(this->m_pTitleLayer);
 
 	this->m_pUnderLine = cocos2d::CCSprite::createWithSpriteFrameName("floorLine_001.png");
-	this->m_pUnderLine->setPosition({ Utils::WinSize().width / 2.f, Utils::WinSize().height / 2.f + 100.f });
+	this->m_pUnderLine->setPosition({ 220.f, 245.f });
 	this->m_pUnderLine->setScaleX(0.5f);
 	this->m_pUnderLine->setScaleY(0.8f);
 	this->m_pUnderLine->setOpacity(100);
@@ -189,7 +180,7 @@ bool SelectQuickSettings::setup(bool inGame)
 	auto CustomVi = ListView::create(arrayList, 30.f, 340.f, 200.f);
 
 	auto gjCommentBase = GJCommentListLayer::create(CustomVi, nullptr, { 0, 0, 0 }, 340.f, 200.f, 0);
-	gjCommentBase->setPosition({ Utils::WinSize().width / 2.f - 165.f, Utils::WinSize().height / 2.f - 120.f });
+	gjCommentBase->setPosition({ 55.f, 25.f });
 	gjCommentBase->setZOrder(2);
 	m_buttonMenu->addChild(gjCommentBase);
 
@@ -208,7 +199,7 @@ void SelectQuickSettings::onToggleWithGameVariable(CCObject* pSender)
 
 	if (toggleButton->getTag() == -11 && !GameStatsManager::sharedState()->isItemUnlocked(UnlockType::GJItem, 0x11) && !toggleButton->isToggled()) {
 		auto toggleButton = reinterpret_cast<CCMenuItemToggler*>(pSender);
-		auto gameOptionsLayer = GameOptionsLayer::create(Utils::getplayLayerA());
+		//auto gameOptionsLayer = GameOptionsLayer::create(Utils::getplayLayerA());
 
 		auto arr = CCArray::create();
 		arr->addObject(DialogObject::create("Scratch", "What's the <cl>point</c> of adding it if you don't have it <cr>unlocked?</c>", 13, 1, false, { 255,255,255 }));
