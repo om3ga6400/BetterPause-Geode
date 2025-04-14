@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.7.0
+* Removed ScrollLayer, cleaner and better UI
+* Crash risky for now, please be careful using this
+
 ## v1.6.8
 
 * Fixed several bugs such as incompatibility with BetterInfo (touch issues with some buttons) and percentage input in level editing, not editor.

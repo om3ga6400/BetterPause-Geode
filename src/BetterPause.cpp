@@ -230,15 +230,15 @@ void BetterPause::createSectionTitles() {
 
 	this->volumeSettingsLabel = cocos2d::CCLabelBMFont::create("Volume Settings:", "bigFont.fnt");
 	this->volumeSettingsLabel->setScale(0.5f);
-	this->volumeSettingsLabel->setPosition({ Utils::WinSize().width - 80.f, Utils::WinSize().height - 40.f });
-	this->volumeSettingsLabel->setAnchorPoint({ 1.f, 0.f });
+	this->volumeSettingsLabel->setPosition({ Utils::WinSize().width - 180.f, Utils::WinSize().height - 35.f });
+	this->volumeSettingsLabel->setAnchorPoint({ 0.5f, 0.5f });
 	this->volumeSettingsLabel->setID("volume-settings-title-label");
 	this->addChild(this->volumeSettingsLabel);
 
 	this->questsLabel = cocos2d::CCLabelBMFont::create("Quest:", "bigFont.fnt");
 	this->questsLabel->setScale(0.5f);
-	this->questsLabel->setPosition({ Utils::WinSize().width - 120.f, Utils::WinSize().height - 120.f });
-	this->questsLabel->setAnchorPoint({ 1.f, 0.f });
+	this->questsLabel->setPosition({ Utils::WinSize().width - 180.f, Utils::WinSize().height - 110.f });
+	this->questsLabel->setAnchorPoint({ 0.5f, 0.5f });
 	this->questsLabel->setID("quest-title-label");
 	this->addChild(this->questsLabel);
 
@@ -348,9 +348,9 @@ void BetterPause::createQuestMenu() {
 	this->addChild(questMenu);
 
 	questMenu->m_mainLayer->setScale(0.7f);
-	questMenu->m_mainLayer->setAnchorPoint({ 1.f, 0.f });
+	questMenu->m_mainLayer->setAnchorPoint({ 0.5f, 0.f });
 	questMenu->setOpacity(0.f);
-	questMenu->m_mainLayer->setPosition({ ((Utils::WinSize().width / 2.f) * questMenu->m_mainLayer->getScale()) - 150.f, 0.f });
+	questMenu->m_mainLayer->setPosition({ Utils::WinSize().width / 2 - 180.f, 0.f });
 
 
 	questMenu->setKeyboardEnabled(false);
@@ -376,177 +376,79 @@ void BetterPause::createQuestMenu() {
 	}
 }
 
-
 void BetterPause::createMainButtonsMenu() {
-	cocos2d::CCSize LAYER_SIZE = { 50.f, 180.f };
-	float totalHeight = 0.0f;
-	CCMenuItemSpriteExtra* lastbuttonNow = nullptr;
 
-	layerMenuScrollButtons = cocos2d::CCLayerColor::create({ 0, 0, 0 });
-	layerMenuScrollButtons->setPosition({ 0.f, 0.f });
-	layerMenuScrollButtons->setContentSize({ 45.f, 180.f });
-	layerMenuScrollButtons->setID("layer-menu-scroll-buttons");
-	this->addChild(layerMenuScrollButtons);
-
-	buttonsList = ScrollLayer::create(LAYER_SIZE);
-	buttonsList->setPosition({ 20.f, 115.f });
-	buttonsList->setContentSize({ 45.f, 180.f });
-	buttonsList->setTouchEnabled(true);
-	buttonsList->setID("button-list-betterPause");
-	layerMenuScrollButtons->addChild(buttonsList);
-
-	auto createButtonMenu = [&](CCMenuItemSpriteExtra* button) {
-		auto ccnode = cocos2d::CCNode::create();
-		ccnode->setVisible(true);
-		auto menu = cocos2d::CCMenu::create();
-		menu->setVisible(true);
-		ccnode->setPosition({ 0.f, -totalHeight });
-		menu->setPosition(0.f, 0.f);
-		menu->addChild(button);
-		ccnode->addChild(menu);
-		buttonsList->m_contentLayer->addChild(ccnode);
-		button->setPosition(20.f, 20.f);
-		ccnode->setAnchorPoint({ 0.f, 0.5f });
-		ccnode->setContentSize(button->getContentSize());
-		lastbuttonNow = button;
-		};
+	auto buttonsList = CCMenu::create();
+	buttonsList->setPosition({ 40.f, Utils::WinSize().height / 2 + 20.f });
+	buttonsList->setContentSize({ 40.f, Utils::WinSize().height - 80.f});
+	this->addChild(buttonsList);
 
 	auto resumeButtonImage = cocos2d::CCSprite::createWithSpriteFrameName("GJ_playBtn2_001.png");
 	resumeButtonImage->setScale(0.5f);
 	auto resumeButton = CCMenuItemSpriteExtra::create(resumeButtonImage, pauseLayer, (cocos2d::SEL_MenuHandler)&PauseLayer::onResume);
-	totalHeight += resumeButtonImage->getContentSize().height - 36.f;
-	createButtonMenu(resumeButton);
+	//createButtonMenu(resumeButton);
+	buttonsList->addChild(resumeButton);
 
 	auto replayButtonImage = cocos2d::CCSprite::createWithSpriteFrameName("GJ_replayBtn_001.png");
 	replayButtonImage->setScale(0.5f);
 	auto replayButton = CCMenuItemSpriteExtra::create(replayButtonImage, pauseLayer, (cocos2d::SEL_MenuHandler)&PauseLayer::onRestart);
-	totalHeight += replayButtonImage->getContentSize().height - 20.f;
-	createButtonMenu(replayButton);
+	//createButtonMenu(replayButton);
+	buttonsList->addChild(replayButton);
 
 	if (Utils::getplayLayerA()->m_level->isPlatformer()) {
 		auto replayFullButtonImage = cocos2d::CCSprite::createWithSpriteFrameName("GJ_replayFullBtn_001.png");
 		replayFullButtonImage->setScale(0.5f);
 		auto replayFullButton = CCMenuItemSpriteExtra::create(replayFullButtonImage, pauseLayer, (cocos2d::SEL_MenuHandler)&PauseLayer::onRestartFull);
-		totalHeight += replayFullButtonImage->getContentSize().height - 24.f;
-		createButtonMenu(replayFullButton);
+		//createButtonMenu(replayFullButton);
+		buttonsList->addChild(replayFullButton);
 	}
 
 	auto practiceButtonImage = cocos2d::CCSprite::createWithSpriteFrameName(Utils::getplayLayerA()->m_isPracticeMode ? "GJ_normalBtn_001.png" : "GJ_practiceBtn_001.png");
 	practiceButtonImage->setScale(0.5f);
 	auto practiceButton = CCMenuItemSpriteExtra::create(practiceButtonImage, pauseLayer, (Utils::getplayLayerA()->m_isPracticeMode ? (cocos2d::SEL_MenuHandler)&PauseLayer::onNormalMode : (cocos2d::SEL_MenuHandler)&PauseLayer::onPracticeMode));
-	totalHeight += practiceButtonImage->getContentSize().height - 24.f;
-	createButtonMenu(practiceButton);
+	//createButtonMenu(practiceButton);
+	buttonsList->addChild(practiceButton);
 
 	auto quitButtonImage = cocos2d::CCSprite::createWithSpriteFrameName("GJ_menuBtn_001.png");
 	quitButtonImage->setScale(0.5f);
-
 	auto quitButton = CCMenuItemSpriteExtra::create(quitButtonImage, pauseLayer, (cocos2d::SEL_MenuHandler)&PauseLayer::tryQuit);
-	totalHeight += quitButtonImage->getContentSize().height - 24.f;
-	createButtonMenu(quitButton);
+	buttonsList->addChild(quitButton);
 
 	if (Utils::getplayLayerA()->m_level->m_levelType == GJLevelType::Editor || Mod::get()->getSettingValue<bool>("level-editor-hack")) {
 		auto editButtonImage = cocos2d::CCSprite::createWithSpriteFrameName("GJ_editBtn_001.png");
 		editButtonImage->setScale(0.38f);
 		auto editButton = CCMenuItemSpriteExtra::create(editButtonImage, this, (cocos2d::SEL_MenuHandler)&BetterPause::onEditorHack);
-		totalHeight += editButtonImage->getContentSize().height - 42.f;
-		createButtonMenu(editButton);
+		buttonsList->addChild(editButton);
 	}
 
+	buttonsList->setLayout(
+		ColumnLayout::create()
+			->setGap(7.f)
+			->setAutoScale(true)
+			->setAxisReverse(true)
+			->setAxisAlignment(AxisAlignment::End)
+			->setCrossAxisAlignment(AxisAlignment::Center)
+	);
+	buttonsList->updateLayout();
+
+	auto commentsMenu = CCMenu::create();
+	commentsMenu->setPosition({ 40.f, 30.f});
+	this->addChild(commentsMenu);
 	if (Mod::get()->getSettingValue<bool>("show-comment-button")) {
-
 		auto spriteName = Mod::get()->getSettingValue<bool>("original-comment-button-sprite") ? "GJ_infoBtn_001.png" : "GJ_chatBtn_001.png";
-
 		auto showCommentsImage = cocos2d::CCSprite::createWithSpriteFrameName(spriteName);
-		showCommentsImage->setScale(0.6f);
+		showCommentsImage->setScale(0.7f);
 		auto showCommentsButton = CCMenuItemSpriteExtra::create(showCommentsImage, pauseLayer, (cocos2d::SEL_MenuHandler)&BetterPause::onLevelInfoLayer);
-		totalHeight += showCommentsImage->getContentSize().height - 8.f;
-		createButtonMenu(showCommentsButton);
+		commentsMenu->addChild(showCommentsButton);
 	}
-
-
-	std::vector<CCMenuItemSpriteExtra*> menuButtonsDetected = {};
-	std::vector<std::string> buttonIds{ "edit-button", "full-restart-button", "practice-button",
-										"play-button", "exit-button", "retry-button", "options-button" };
-	this->findButtonsRecursively(this->pauseLayer, buttonIds, menuButtonsDetected);
-
-	auto lastButtonBefore = lastbuttonNow;
-
-	for (int i = 0; i < menuButtonsDetected.size(); ++i) {
-		auto buttonExt = menuButtonsDetected[i];
-
-		if (buttonExt) {
-
-			auto normalImage = typeinfo_cast<CCSprite*>(buttonExt->getNormalImage());
-			auto lastNormalImage = typeinfo_cast<CCSprite*>(lastButtonBefore->getNormalImage());
-
-			auto baseCollisionBox = lastNormalImage->boundingBox();
-			auto currentCollisionBox = normalImage->boundingBox();
-
-			float baseWidth = baseCollisionBox.getMaxX() - baseCollisionBox.getMinX();
-			float baseHeight = baseCollisionBox.getMaxY() - baseCollisionBox.getMinY();
-
-			float currentWidth = currentCollisionBox.getMaxX() - currentCollisionBox.getMinX();
-			float currentHeight = currentCollisionBox.getMaxY() - currentCollisionBox.getMinY();
-
-			float scaleX = baseWidth / currentWidth;
-			float scaleY = baseHeight / currentHeight;
-
-			buttonExt->setScale(1.f);
-			buttonExt->setContentSize(lastButtonBefore->getContentSize());
-
-
-			if (normalImage && lastNormalImage) {
-				//undefined06855 arregla tu wea oe
-				float mult = 0.9f;
-				if (buttonExt->getID() == "undefined0.autocheckpoint/settings-button") {
-					mult = 0.3f;
-				}
-
-				normalImage->setScaleX(scaleX * mult);
-				normalImage->setScaleY(scaleY * mult);
-
-				if (lastNormalImage) {
-					normalImage->setPosition(lastNormalImage->getPosition());
-				}
-			}
-
-			totalHeight += menuButtonsDetected[i]->getContentSize().height + 10.f;
-
-			createButtonMenu(buttonExt);
-		}
-
-	}
-
-
-	auto allChildrens = buttonsList->m_contentLayer->getChildren();
-	CCObject* node;
-	CCARRAY_FOREACH(allChildrens, node) {
-		auto child = typeinfo_cast<CCNode*>(node);
-		child->setPositionY(child->getPositionY() + totalHeight + 25.f);
-	}
-
-	if (totalHeight < LAYER_SIZE.height) {
-		totalHeight = LAYER_SIZE.height;
-	}
-
-	buttonsList->m_contentLayer->setContentSize({ LAYER_SIZE.width, totalHeight });
-	layerMenuScrollButtons->setContentSize({ LAYER_SIZE.width, totalHeight });
-	buttonsList->moveToTop();
-
-	float xContentSize = 50.f;
-
-#ifdef GEODE_IS_ANDROID
-	xContentSize = 100.0f;
-#endif
-	buttonsList->setContentSize({ xContentSize, 180.f });
-
-	totalButtonsListHeight = buttonsList->m_contentLayer->getPositionY();
 }
 
 void BetterPause::createSecondaryButtonsMenu() {
 	secondaryMenuButtons = cocos2d::CCMenu::create();
 	secondaryMenuButtons->setID("secondary-menu-buttons");
-	secondaryMenuButtons->setPosition({ 40.f, 42.f });
+	secondaryMenuButtons->setPosition({ Utils::WinSize().width - 30.f, Utils::WinSize().height / 2 });
+	secondaryMenuButtons->setContentSize({ 30.f, Utils::WinSize().height - 60.f });
+
 	this->addChild(secondaryMenuButtons);
 
 	auto visibleButtonImage = cocos2d::CCSprite::create("BE_eye-on-btn.png"_spr);
@@ -568,32 +470,30 @@ void BetterPause::createSecondaryButtonsMenu() {
 	auto firstButtonRect = visibleButton->boundingBox();
 	settingsButton->setPositionY(firstButtonRect.getMaxY() + 22.f);
 
+	std::vector<CCMenuItemSpriteExtra*> menuButtonsDetected = {};
+	std::vector<std::string> buttonIds{ "edit-button", "full-restart-button", "practice-button",
+										"play-button", "exit-button", "retry-button", "options-button" };
 
-	scrollUpButtonSprite = cocos2d::CCSprite::createWithSpriteFrameName("edit_upBtn_001.png");
-	scrollUpButtonSprite->setScaleX(2.f);
-	scrollUpButtonSprite->setScaleY(1.4f);
-	scrollUpButton = CCMenuItemSpriteExtra::create(scrollUpButtonSprite, this, (cocos2d::SEL_MenuHandler)&BetterPause::onScrollUpButton);
-	scrollUpButton->setPosition({ 0.f, 263.f });
-	secondaryMenuButtons->addChild(scrollUpButton);
+	this->findButtonsRecursively(this->pauseLayer, buttonIds, menuButtonsDetected);
 
-	scrollDownButtonSprite = cocos2d::CCSprite::createWithSpriteFrameName("edit_downBtn_001.png");
-	scrollDownButtonSprite->setScaleX(2.f);
-	scrollDownButtonSprite->setScaleY(1.4f);
-	scrollDownButton = CCMenuItemSpriteExtra::create(scrollDownButtonSprite, this, (cocos2d::SEL_MenuHandler)&BetterPause::onScrollDownButton);
-	scrollDownButton->setPosition({ 0.f, 65.f });
-	secondaryMenuButtons->addChild(scrollDownButton);
+	//auto lastButtonBefore = lastbuttonNow;
 
-	if (!Mod::get()->getSettingValue<bool>("disable-arrow-blink")) {
-		scrollUpButtonSprite->runAction(cocos2d::CCRepeatForever::create(CCSequence::create(CCFadeTo::create(0.4f, 50), CCFadeTo::create(0.4f, 255), nullptr)));
-		scrollDownButtonSprite->runAction(cocos2d::CCRepeatForever::create(CCSequence::create(CCFadeTo::create(0.4f, 50), CCFadeTo::create(0.4f, 255), nullptr)));
+	for (CCMenuItemSpriteExtra* buttonExt : menuButtonsDetected) {
+		if (!buttonExt)
+			continue;
+		buttonExt->removeFromParent();
+		secondaryMenuButtons->addChild(buttonExt);
 	}
 
-	if (Mod::get()->getSettingValue<bool>("disable-arrow-buttons")) {
-		scrollUpButton->setVisible(false);
-		scrollDownButton->setVisible(false);
-	}
+	secondaryMenuButtons->setLayout(
+		ColumnLayout::create()
+			->setGap(7.f)
+			->setAutoScale(true)
+			->setAxisAlignment(AxisAlignment::End)
+			->setCrossAxisAlignment(AxisAlignment::Center)
+	);
+	secondaryMenuButtons->updateLayout();
 
-	this->updateButtons();
 }
 
 void BetterPause::createAudioControls() {
@@ -606,16 +506,16 @@ void BetterPause::createAudioControls() {
 
 	sliderPlusMusic = SliderPlus::create("Music", this, (cocos2d::SEL_MenuHandler)&PauseLayer::musicSliderChanged,
 		nullptr, nullptr, musicValue);
-	sliderPlusMusic->setPosition({ Utils::WinSize().width, Utils::WinSize().height - 60.f });
-	sliderPlusMusic->setAnchorPoint({ 1.f, 0.f });
+	sliderPlusMusic->setPosition({ Utils::WinSize().width - 180.f, Utils::WinSize().height - 60.f });
+	sliderPlusMusic->setAnchorPoint({ 0.f, 0.f });
 	sliderPlusMusic->setScale(0.9f);
 	sliderPlusMusic->setID("slider-music-plus");
 	this->addChild(sliderPlusMusic);
 
 	sliderPlusSFX = SliderPlus::create("SFX", this, (cocos2d::SEL_MenuHandler)&PauseLayer::sfxSliderChanged,
 		nullptr, nullptr, sfxValue);
-	sliderPlusSFX->setPosition({ Utils::WinSize().width, Utils::WinSize().height - 90.f });
-	sliderPlusSFX->setAnchorPoint({ 1.f, 0.f });
+	sliderPlusSFX->setPosition({ Utils::WinSize().width - 180.f, Utils::WinSize().height - 90.f });
+	sliderPlusSFX->setAnchorPoint({ 0.f, 0.f });
 	sliderPlusSFX->setScale(0.9f);
 	sliderPlusSFX->setID("slider-sfx-plus");
 	this->addChild(sliderPlusSFX);
@@ -876,15 +776,13 @@ void BetterPause::onHide(cocos2d::CCObject* pSender) {
 	this->isHidden = !this->isHidden;
 	pauseLayer->setOpacity(this->isHidden ? 0 : 75);
 
-	for (size_t i = 0; i < this->getChildrenCount(); i++)
+	for (auto node : CCArrayExt<CCNode*>(this->getChildren()))
 	{
-		auto node = reinterpret_cast<cocos2d::CCNode*>(this->getChildren()->objectAtIndex(i));
 		node->setVisible(!this->isHidden);
 	}
 
-	for (size_t i = 0; i < pauseLayer->getChildrenCount(); i++)
+	for (auto node : CCArrayExt<CCNode*>(pauseLayer->getChildren()))
 	{
-		auto node = reinterpret_cast<cocos2d::CCNode*>(pauseLayer->getChildren()->objectAtIndex(i));
 		if (typeMenuCreate == 2) {
 			node->setVisible(!this->isHidden);
 		}
@@ -918,7 +816,6 @@ void BetterPause::onHide(cocos2d::CCObject* pSender) {
 	}
 	visibleButton->setVisible(true);
 	visibleButton->setOpacity(this->isHidden ? 50 : 255);
-	this->updateButtons();
 }
 
 void BetterPause::onEditorHack(cocos2d::CCObject* pSender) {
@@ -939,13 +836,10 @@ void BetterPause::scrollWheel(float x, float y) {
 	}
 	buttonsList->scrollWheel(x, y);
 
-	this->updateButtons();
-
 }
 
 void BetterPause::ccTouchMoved(CCTouch* pTouch, CCEvent* pEvent) {
 	CCLayer::ccTouchMoved(pTouch, pEvent);
-	this->updateButtons();
 }
 
 void BetterPause::onRedirectionToggle(cocos2d::CCObject* pSender) {
@@ -1005,9 +899,9 @@ void BetterPause::findButtonsRecursively(CCNode* node, std::vector<std::string>&
 		}
 	}
 
-	for (size_t i = 0; i < node->getChildrenCount(); i++)
+	for (CCNode* child : CCArrayExt<CCNode*>(node->getChildren()))
 	{
-		BetterPause::findButtonsRecursively(static_cast<CCNode*>(node->getChildren()->objectAtIndex(i)), buttonIds, buttonsExternals);
+		BetterPause::findButtonsRecursively(child, buttonIds, buttonsExternals);
 	}
 }
 
@@ -1024,7 +918,6 @@ void BetterPause::onScrollUpButton(cocos2d::CCObject* sender) {
 	}
 
 	buttonsList->m_contentLayer->setPositionY(newContentPosY);
-	this->updateButtons();
 }
 
 void BetterPause::onScrollDownButton(cocos2d::CCObject* sender) {
@@ -1040,7 +933,6 @@ void BetterPause::onScrollDownButton(cocos2d::CCObject* sender) {
 	}
 
 	buttonsList->m_contentLayer->setPositionY(newContentPosY);
-	this->updateButtons();
 }
 
 void BetterPause::adjustLayerForAspectRatio() {
